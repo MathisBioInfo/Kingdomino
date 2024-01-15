@@ -81,12 +81,14 @@ class GameBoard:
     def _add_node(self, x, y, tile):
         self.nodes[(x, y)] = tile
         self._update_bounds()
-        self._update_places()
+        self._update_places(x, y)
 
     def _add_domino(self, pos1, pos2, domino):
         self.nodes[pos1] = domino[0]
         self.nodes[pos2] = domino[1]
         self._update_bounds()
+        self._update_places(*pos1)
+        self._update_places(*pos2)
 
     def _to_matrix(self):
         mat = []
@@ -112,8 +114,10 @@ class GameBoard:
     def add_node(self, x, y, tile):
         raise NotImplementedError
 
-    def add_domino(sefl, pos1, pos2, domino):
+    def add_domino(self, pos1, pos2, domino):
         raise NotImplementedError
+
+    
 
 
 
