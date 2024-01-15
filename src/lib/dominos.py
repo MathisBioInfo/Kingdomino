@@ -1,24 +1,35 @@
 from enum import Enum
 from typing import NamedTuple
 
+from src.lib.colors import Colors
+
 
 class Decor(Enum):
-    FOREST = "FOREST"
-    FIELD = "FIELD"
-    LAKE = "LAKE"
-    MEADOW = "MEADOW"
-    MINE = "MINE"
-    SWAMP = "SWAMP"
-    CAPITAL = "CAPITAL"
+    FOREST = Colors.GREEN
+    FIELD = Colors.YELLOW
+    LAKE = Colors.BLUE
+    MEADOW = Colors.MAGENTA
+    MINE = Colors.RED
+    SWAMP = Colors.CYAN
+    CAPITAL = Colors.WHITE
+    NOTHING = Colors.NOTHING
 
 
 class Tile(NamedTuple):
-    dom_id: int
-    decor: Decor
-    crown: int
+    dom_id: int = -1
+    decor: Decor = Decor.NOTHING
+    crown: int = 0
+
+    def __repr__(self):
+        if self.decor is Decor.NOTHING:
+            return " . "
+        return self.decor.value(f"{self.crown:^3}")
+
+    def _alter_repr(self):
+        return self.decor.value(f" {self.decor.name}:{self.crown:^3}")
 
 
-TILES = [
+DOMINOS = [
     (Tile(1, Decor.FIELD, 0), Tile(1, Decor.FIELD, 0)),
     (Tile(2, Decor.FIELD, 0), Tile(2, Decor.FIELD, 0)),
     (Tile(3, Decor.FOREST, 0), Tile(3, Decor.FOREST, 0)),
