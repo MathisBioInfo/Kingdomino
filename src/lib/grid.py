@@ -1,7 +1,7 @@
 from sys import stderr
 from typing import NamedTuple
 
-from src.lib.utilsfunc import cartesian_product
+from lib.utils_func import cartesian_product
 
 
 class Box(NamedTuple):
