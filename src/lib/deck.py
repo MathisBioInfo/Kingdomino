@@ -1,32 +1,26 @@
 from random import shuffle
-from sys import stderr
 
-from lib.tiles import TILES
+from src.lib.dominos import DOMINOS
 
 
 class Deck:
     def __init__(self):
-        self.deck = TILES.copy()
+        self.deck = DOMINOS
         shuffle(self.deck)
-        self.remain = len(TILES)
+        self.remain = len(DOMINOS)
+
+    def __repr__(self):
+        return f"Deck with {self.remain} dominos"
 
     def draw(self):
         if self.remain > 0:
             self.remain -= 1
             return self.deck.pop()
         else:
-            print("Le deck est vide", file=stderr)
+            raise Exception("Deck is empty!")
 
     def draw_n(self, n):
-        doms = []
-        for i in range(n):
-            dom = self.draw()
-            if dom is None:
-                return doms
-            doms.append(dom)
-        return doms
-
-    def reset(self):
-        self.deck = TILES.copy()
-        shuffle(self.deck)
-        self.remain = len(TILES)
+        if n <= self.remain:
+            return [self.draw() for _ in range(n)]
+        else:
+            raise Exception("Deck does not have enough dominos")
