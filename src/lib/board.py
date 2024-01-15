@@ -26,6 +26,7 @@ class GameBoard:
         self.initial_bounds = Bounds(-width, width, -height, height)
         self.bounds = Bounds(-width, width, -height, height)
         self.nodes = {(0, 0): Tile(0, Decor.CAPITAL, 0)}
+        self.disc_graph = {(0, 0): set()}
         self._playable_nodes = set()
         self._playable_dominos = set()
 
@@ -93,6 +94,21 @@ class GameBoard:
             res.extend(rotated_playables)
 
         self._playable_dominos = set(res)
+    
+
+    def _update_disc_graph(self, x, y):
+        neighbors = self.get_taken_neighbors_coords(x, y)
+        homochromic_neighbors = [n for n in neighbors if self.nodes[n].decor == self.nodes[(x, y)].decor]
+        self.disc_graph[(x, y)] = set(homochromic_neighbors)
+        for n in homochromic_neighbors:
+            self.disc_graph[n].add((x, y))
+
+    
+    def _show_disc_graph(self):
+        repr = []
+        for node, neighbors in self.disc_graph.items():
+            repr.extend([node, " --> ", neighbors, "\n"])
+        print(*repr, end="", sep="")
 
 
     def _is_not_overbounded_node(self, x, y):
@@ -115,6 +131,7 @@ class GameBoard:
         self.nodes[(x, y)] = tile
         self._update_bounds()
         self._update_playable_nodes(x, y)
+        self._update_disc_graph(x, y)
 
 
     def _add_domino(self, pos_1, pos_2, tiles):
@@ -143,10 +160,6 @@ class GameBoard:
 
     def get_taken_neighbors_coords(self, x, y):
         return [p for p in self.get_neighbors_coords(x, y) if p in self.nodes]
-
-
-    def to_adjacency_dict(self):
-       return {n: self.get_taken_neighbors_coords(*n) for n in self.nodes}
 
 
     def add_domino(self, pos_1, pos_2, tiles):
