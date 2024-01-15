@@ -26,7 +26,6 @@ class GameBoard:
         self.initial_bounds = Bounds(-width, width, -height, height)
         self.bounds = Bounds(-width, width, -height, height)
         self.nodes = {(0, 0): Tile(0, Decor.CAPITAL, 0)}
-        self.disc_graph = {(0, 0): set()}
         self._playable_nodes = set()
         self._playable_dominos = set()
 
@@ -80,35 +79,20 @@ class GameBoard:
 
 
     def _update_playable_nodes(self, x, y):
-        playables = (self._playable_nodes | set(self.get_free_neighbors_coords(x, y))) - {(x, y)}
+        playables = (self._playable_nodes | set(self._get_free_neighbors_coords(x, y))) - {(x, y)}
         self._playable_nodes = {p for p in playables if self._is_not_overbounded_node(*p)}
 
 
     def _update_playable_dominos(self):
         res = []
         for p in self._playable_nodes:
-            playables = cartesian_product([p], self.get_free_neighbors_coords(*p))
+            playables = cartesian_product([p], self._get_free_neighbors_coords(*p))
             valid_playables = [d for d in playables if self._is_not_overbounded_domino(*d)]
             rotated_playables = [(pos_2, pos_1) for (pos_1, pos_2) in valid_playables]
             res.extend(valid_playables)
             res.extend(rotated_playables)
 
         self._playable_dominos = set(res)
-    
-
-    def _update_disc_graph(self, x, y):
-        neighbors = self.get_taken_neighbors_coords(x, y)
-        homochromic_neighbors = [n for n in neighbors if self.nodes[n].decor == self.nodes[(x, y)].decor]
-        self.disc_graph[(x, y)] = set(homochromic_neighbors)
-        for n in homochromic_neighbors:
-            self.disc_graph[n].add((x, y))
-
-    
-    def _show_disc_graph(self):
-        repr = []
-        for node, neighbors in self.disc_graph.items():
-            repr.extend([node, " --> ", neighbors, "\n"])
-        print(*repr, end="", sep="")
 
 
     def _is_not_overbounded_node(self, x, y):
@@ -131,7 +115,6 @@ class GameBoard:
         self.nodes[(x, y)] = tile
         self._update_bounds()
         self._update_playable_nodes(x, y)
-        self._update_disc_graph(x, y)
 
 
     def _add_domino(self, pos_1, pos_2, tiles):
@@ -150,20 +133,20 @@ class GameBoard:
         return mat
 
 
-    def get_neighbors_coords(self, x, y):
+    def _get_neighbors_coords(self, x, y):
         return [(x+1, y), (x, y+1), (x-1, y), (x, y-1)]
 
 
-    def get_free_neighbors_coords(self, x, y):
-        return [p for p in self.get_neighbors_coords(x, y) if p not in self.nodes]
+    def _get_free_neighbors_coords(self, x, y):
+        return [pos for pos in self._get_neighbors_coords(x, y) if pos not in self.nodes]
 
 
-    def get_taken_neighbors_coords(self, x, y):
-        return [p for p in self.get_neighbors_coords(x, y) if p in self.nodes]
+    def _get_existing_neighbors_coords(self, x, y):
+        return [pos for pos in self._get_neighbors_coords(x, y) if pos in self.nodes]
 
 
     def add_domino(self, pos_1, pos_2, tiles):
-        if pos_1 not in self.get_neighbors_coords(*pos_2):
+        if pos_1 not in self._get_neighbors_coords(*pos_2):
             raise Exception("invalid domino definition, tiles must be adjacent")
         elif pos_1 in self.nodes or pos_2 in self.nodes:
             raise Exception(f"this place {(pos_1, pos_2)} is already taken")
@@ -173,4 +156,27 @@ class GameBoard:
             raise Exception(f"this place {(pos_1, pos_2)} is not connected to an existing domino")
         else:
             self._add_domino(pos_1, pos_2, tiles)
+
+
+    def _dfs_domain(self, node, visited):
+        visited.add(node)
+        for neighbor in self._get_existing_neighbors_coords(*node):
+            if neighbor not in visited and self.nodes[node].decor == self.nodes[neighbor].decor:
+                self._dfs_domain(neighbor, visited)
+        return visited
+
+
+    def _score(self, to_visit, score):
+        node = to_visit.pop()
+        domain = self._dfs_domain(node, set())
+        score += len(domain) * sum([self.nodes[n].crown for n in domain])
+        to_visit -= domain
+        if len(to_visit) == 0:
+            return score
+        else:
+            return self._score(to_visit, score)
+
+
+    def score(self):
+        return self._score(self.nodes.keys() - {(0, 0)}, 0)
 
