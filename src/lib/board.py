@@ -53,10 +53,6 @@ class GameBoard:
         return "".join(repr)
 
 
-    def show_free_places(self):
-        print(self.__repr__(True))
-
-
     def _get_max_x(self):
         return max([x for x, _ in self.nodes])
 
@@ -145,20 +141,16 @@ class GameBoard:
         return [p for p in self.get_neighbors_coords(x, y) if p not in self.nodes]
 
 
-    def get_neighbors(self, x, y):
-        return {coord: self.nodes.get(coord, None) for coord in self.get_neighbors_coords(x, y)}
+    def get_taken_neighbors_coords(self, x, y):
+        return [p for p in self.get_neighbors_coords(x, y) if p in self.nodes]
 
 
-    def to_adjacency_list(self):
-        adj = []
-        for node in self.nodes:
-            neighbors = [v for v in self.get_neighbors(*node).values() if v is not None]
-            adj.append((self.nodes[node], neighbors))
-        return adj
+    def to_adjacency_dict(self):
+       return {n: self.get_taken_neighbors_coords(*n) for n in self.nodes}
 
 
     def add_domino(self, pos_1, pos_2, tiles):
-        if pos_1 not in self.get_neighbors(*pos_2):
+        if pos_1 not in self.get_neighbors_coords(*pos_2):
             raise Exception("invalid domino definition, tiles must be adjacent")
         elif pos_1 in self.nodes or pos_2 in self.nodes:
             raise Exception(f"this place {(pos_1, pos_2)} is already taken")
