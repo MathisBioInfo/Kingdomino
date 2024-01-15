@@ -50,7 +50,6 @@ class GameBoard:
             repr.append("\n")
         repr.append("\n" + " " * 4)
         repr.extend([f"{x:^3}" for x in range(self.bounds.min_x, self.bounds.max_x+1)])
-        repr.append("\n")
         return "".join(repr)
 
 
@@ -138,13 +137,6 @@ class GameBoard:
         return mat
 
 
-    def to_adjacency_matrix(self):
-        ...
-
-    def to_adjacency_list(self):
-        raise NotImplementedError
-
-
     def get_neighbors_coords(self, x, y):
         return [(x+1, y), (x, y+1), (x-1, y), (x, y-1)]
 
@@ -155,6 +147,14 @@ class GameBoard:
 
     def get_neighbors(self, x, y):
         return {coord: self.nodes.get(coord, None) for coord in self.get_neighbors_coords(x, y)}
+
+
+    def to_adjacency_list(self):
+        adj = []
+        for node in self.nodes:
+            neighbors = [v for v in self.get_neighbors(*node).values() if v is not None]
+            adj.append((self.nodes[node], neighbors))
+        return adj
 
 
     def add_domino(self, pos_1, pos_2, tiles):
@@ -168,3 +168,4 @@ class GameBoard:
             raise Exception(f"this place {(pos_1, pos_2)} is not connected to an existing domino")
         else:
             self._add_domino(pos_1, pos_2, tiles)
+
