@@ -133,14 +133,13 @@ class GameBoard:
         for x in range(self.bounds.min_x+1, self.bounds.max_x):
             sub_mat = []
             for y in range(self.bounds.min_y+1, self.bounds.max_y):
-                sub_mat.append(self.nodes.get((x, y), Tile()))
+                sub_mat.append(self.nodes.get((x, y), None))
             mat.append(sub_mat)
         return mat
 
 
     def to_adjacency_matrix(self):
-        raise NotImplementedError
-
+        ...
 
     def to_adjacency_list(self):
         raise NotImplementedError
@@ -155,7 +154,7 @@ class GameBoard:
 
 
     def get_neighbors(self, x, y):
-        return {coord: self.nodes.get(coord, Tile()) for coord in self.get_neighbors_coords(x, y)}
+        return {coord: self.nodes.get(coord, None) for coord in self.get_neighbors_coords(x, y)}
 
 
     def add_domino(self, pos_1, pos_2, tiles):

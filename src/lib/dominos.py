@@ -12,17 +12,14 @@ class Decor(Enum):
     MINE = Colors.RED
     SWAMP = Colors.CYAN
     CAPITAL = Colors.WHITE
-    NOTHING = Colors.NOTHING
 
 
 class Tile(NamedTuple):
-    dom_id: int = -1
-    decor: Decor = Decor.NOTHING
-    crown: int = 0
+    dom_id: int
+    decor: Decor
+    crown: int
 
     def __repr__(self):
-        if self.decor is Decor.NOTHING:
-            return " . "
         return self.decor.value(f"{self.crown:^3}")
 
     def _alter_repr(self):

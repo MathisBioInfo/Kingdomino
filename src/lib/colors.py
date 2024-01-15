@@ -9,7 +9,6 @@ class Colors(Enum):
     MAGENTA = "\033[45m"
     CYAN = "\033[46m"
     WHITE = "\033[47m"
-    NOTHING = "\033[0m"
 
     def __call__(self, string):
         return f"{self.value}{string}\033[0m"
