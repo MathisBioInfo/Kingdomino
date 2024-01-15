@@ -22,7 +22,7 @@ class GameBoard:
         self.initial_bounds = Bounds(-width, width, -height, height)
         self.current_bounds = Bounds(-width, width, -height, height)
         self.nodes = {(0, 0): Tile(0, Decor.CAPITAL, 0)}
-        self.places = {*self.get_neighbors_coords(0, 0)} #Not Used
+        self.places = {*self.get_neighbors_coords(0, 0)}
 
     def __repr__(self):
         repr = []
@@ -60,6 +60,10 @@ class GameBoard:
             self.initial_bounds.max_y + self._get_min_y(),
         )
 
+    def _update_places(self, last_x, last_y):
+        new_places = (self.places | set(self.get_neighbors_coords(last_x, last_y))) - self.nodes.keys()
+        self.places = {self._is_not_overbounded_node(*p) for p in new_places}
+
     def _is_not_overbounded_node(self, x, y):
         return (
             x > self.current_bounds.min_x and
@@ -77,6 +81,7 @@ class GameBoard:
     def _add_node(self, x, y, tile):
         self.nodes[(x, y)] = tile
         self._update_bounds()
+        self._update_places()
 
     def _add_domino(self, pos1, pos2, domino):
         self.nodes[pos1] = domino[0]
