@@ -1,5 +1,4 @@
 from typing import NamedTuple
-from time import perf_counter
 
 from src.lib.dominos import Tile, Decor
 
@@ -23,10 +22,10 @@ class GameBoard:
         self.initial_bounds = Bounds(-width, width, -height, height)
         self.current_bounds = Bounds(-width, width, -height, height)
         self.nodes = {(0, 0): Tile(0, Decor.CAPITAL, 0)}
-        self.free_places = set()
+        self._free_node_places = set()
         self.free_domino_places = set()
 
-        self._update_free_places(0, 0)
+        self._update_free_node_places(0, 0)
         self._update_free_domino_places()
 
     def __repr__(self):
@@ -65,16 +64,16 @@ class GameBoard:
             self.initial_bounds.max_y + self._get_min_y(),
         )
 
-    def _update_free_places(self, x, y):
-        new_places = (self.free_places | set(self.get_free_neighbors_coords(x, y))) - {(x, y)}
-        self.free_places = {p for p in new_places if self._is_not_overbounded_node(*p)}
+    def _update_free_node_places(self, x, y):
+        new_places = (self._free_node_places | set(self.get_free_neighbors_coords(x, y))) - {(x, y)}
+        self._free_node_places = {p for p in new_places if self._is_not_overbounded_node(*p)}
 
     def _update_free_domino_places(self):
         res = []
-        for p in self.free_places:
+        for p in self._free_node_places:
             dom_places = cartesian_product([p], self.get_free_neighbors_coords(*p))
             valid_dom_places = [d for d in dom_places if self._is_not_overbounded_domino(*d)]
-            rotated_dom_places = [(pos2, pos1) for (pos1, pos2) in valid_dom_places]
+            rotated_dom_places = [(pos_2, pos_1) for (pos_1, pos_2) in valid_dom_places]
             res.extend(valid_dom_places)
             res.extend(rotated_dom_places)
 
@@ -88,23 +87,23 @@ class GameBoard:
             y < self.current_bounds.max_y
         )
 
-    def _is_not_overbounded_domino(self, pos1, pos2):
+    def _is_not_overbounded_domino(self, pos_1, pos_2):
         return (
-            self._is_not_overbounded_node(*pos1) and
-            self._is_not_overbounded_node(*pos2)
+            self._is_not_overbounded_node(*pos_1) and
+            self._is_not_overbounded_node(*pos_2)
         )
 
     def _add_node(self, x, y, tile):
         self.nodes[(x, y)] = tile
         self._update_bounds()
-        self._update_free_places(x, y)
+        self._update_free_node_places(x, y)
 
-    def _add_domino(self, pos1, pos2, domino):
-        self._add_node(*pos1, domino[0])
-        self._add_node(*pos2, domino[1])
+    def _add_domino(self, pos_1, pos_2, tiles):
+        self._add_node(*pos_1, tiles[0])
+        self._add_node(*pos_2, tiles[1])
         self._update_free_domino_places()
 
-    def _to_matrix(self):
+    def to_matrix(self):
         mat = []
         for x in range(self.current_bounds.min_x+1, self.current_bounds.max_x):
             sub_mat = []
@@ -113,10 +112,10 @@ class GameBoard:
             mat.append(sub_mat)
         return mat
 
-    def _to_adjacency_matrix(self):
+    def to_adjacency_matrix(self):
         raise NotImplementedError
 
-    def _to_adjacency_list(self):
+    def to_adjacency_list(self):
         raise NotImplementedError
 
     def get_neighbors_coords(self, x, y):
@@ -126,10 +125,16 @@ class GameBoard:
         return [p for p in self.get_neighbors_coords(x, y) if p not in self.nodes]
 
     def get_neighbors(self, x, y):
-        return {coord: self.nodes.get(coord, Tile()) for coord in self.get_neighbors_coords()}
+        return {coord: self.nodes.get(coord, Tile()) for coord in self.get_neighbors_coords(x, y)}
 
-    def add_node(self, x, y, tile):
-        raise NotImplementedError
-
-    def add_domino(self, pos1, pos2, domino):
-        raise NotImplementedError
+    def add_domino(self, pos_1, pos_2, tiles):
+        if pos_1 not in self.get_neighbors(*pos_2):
+            raise Exception("invalid domino definition, tiles must be adjacent")
+        elif pos_1 in self.nodes or pos_2 in self.nodes:
+            raise Exception(f"this place {(pos_1, pos_2)} is already taken")
+        elif not self._is_not_overbounded_domino(pos_1, pos_2):
+            raise Exception(f"this place {(pos_1, pos_2)} is overbounded")
+        elif (pos_1, pos_2) not in self.free_domino_places:
+            raise Exception(f"this place {(pos_1, pos_2)} is not connected to an existing domino")
+        else:
+            self._add_domino(pos_1, pos_2, tiles)
