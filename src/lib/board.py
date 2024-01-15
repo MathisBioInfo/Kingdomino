@@ -160,8 +160,7 @@ class GameBoard:
     
     def add_domino(self, pos_1, pos_2, tiles):
         if pos_1 not in self.get_neighbors(*pos_2):
-            raise Exception("invalid domino 
-            definition, tiles must be adjacent")
+            raise Exception("invalid domino definition, tiles must be adjacent")
         elif pos_1 in self.nodes or pos_2 in self.nodes:
             raise Exception(f"this place {(pos_1, pos_2)} is already taken")
         elif not self._is_not_overbounded_domino(pos_1, pos_2):
