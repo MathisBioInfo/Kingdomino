@@ -1,7 +1,7 @@
 from random import shuffle
 from sys import stderr
 
-from src.lib.tiles import TILES
+from lib.tiles import TILES
 
 
 class Deck:
