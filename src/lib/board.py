@@ -1,4 +1,5 @@
 from typing import NamedTuple
+from time import perf_counter
 
 from src.lib.dominos import Tile, Decor
 
@@ -22,7 +23,11 @@ class GameBoard:
         self.initial_bounds = Bounds(-width, width, -height, height)
         self.current_bounds = Bounds(-width, width, -height, height)
         self.nodes = {(0, 0): Tile(0, Decor.CAPITAL, 0)}
-        self.places = {*self.get_neighbors_coords(0, 0)}
+        self.free_places = set()
+        self.free_domino_places = set()
+
+        self._update_free_places(0, 0)
+        self._update_free_domino_places()
 
     def __repr__(self):
         repr = []
@@ -60,9 +65,20 @@ class GameBoard:
             self.initial_bounds.max_y + self._get_min_y(),
         )
 
-    def _update_places(self, last_x, last_y):
-        new_places = (self.places | set(self.get_neighbors_coords(last_x, last_y))) - self.nodes.keys()
-        self.places = {self._is_not_overbounded_node(*p) for p in new_places}
+    def _update_free_places(self, x, y):
+        new_places = (self.free_places | set(self.get_free_neighbors_coords(x, y))) - {(x, y)}
+        self.free_places = {p for p in new_places if self._is_not_overbounded_node(*p)}
+
+    def _update_free_domino_places(self):
+        res = []
+        for p in self.free_places:
+            dom_places = cartesian_product([p], self.get_free_neighbors_coords(*p))
+            valid_dom_places = [d for d in dom_places if self._is_not_overbounded_domino(*d)]
+            rotated_dom_places = [(pos2, pos1) for (pos1, pos2) in valid_dom_places]
+            res.extend(valid_dom_places)
+            res.extend(rotated_dom_places)
+
+        self.free_domino_places = set(res)
 
     def _is_not_overbounded_node(self, x, y):
         return (
@@ -81,14 +97,12 @@ class GameBoard:
     def _add_node(self, x, y, tile):
         self.nodes[(x, y)] = tile
         self._update_bounds()
-        self._update_places(x, y)
+        self._update_free_places(x, y)
 
     def _add_domino(self, pos1, pos2, domino):
-        self.nodes[pos1] = domino[0]
-        self.nodes[pos2] = domino[1]
-        self._update_bounds()
-        self._update_places(*pos1)
-        self._update_places(*pos2)
+        self._add_node(*pos1, domino[0])
+        self._add_node(*pos2, domino[1])
+        self._update_free_domino_places()
 
     def _to_matrix(self):
         mat = []
@@ -108,6 +122,9 @@ class GameBoard:
     def get_neighbors_coords(self, x, y):
         return [(x+1, y), (x, y+1), (x-1, y), (x, y-1)]
 
+    def get_free_neighbors_coords(self, x, y):
+        return [p for p in self.get_neighbors_coords(x, y) if p not in self.nodes]
+
     def get_neighbors(self, x, y):
         return {coord: self.nodes.get(coord, Tile()) for coord in self.get_neighbors_coords()}
 
@@ -116,8 +133,3 @@ class GameBoard:
 
     def add_domino(self, pos1, pos2, domino):
         raise NotImplementedError
-
-    
-
-
-
