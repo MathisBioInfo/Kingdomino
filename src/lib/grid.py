@@ -1,12 +1,7 @@
 from sys import stderr
 from typing import NamedTuple
 
-
-def cartesian_product(l1, l2):
-    prod = []
-    for i in l1:
-        prod.extend([(i, j) for j in l2])
-    return prod
+from src.lib.utilsfunc import cartesian_product
 
 
 class Box(NamedTuple):
@@ -21,6 +16,7 @@ class Grid:
         self.init_limits = Box(limit_x, -limit_x, limit_y, -limit_y)
         self.limits = Box(limit_x, -limit_x, limit_y, -limit_y)
         self.grid = {(0, 0)}
+        #self.tiles_grid ?
 
     def __repr__(self):
         return self._pretty_repr()
@@ -29,8 +25,8 @@ class Grid:
         repr = []
         for node in self.grid:
             neighbors = [k for k, v in self.get_neighbors(*node).items() if v]
-            repr.append(f'{node}\t->\t{neighbors.__str__().rstrip("]").lstrip("[")}')
-        return '\n'.join(repr)
+            repr.append(f"{node}\t->\t{neighbors.__str__().rstrip(']').lstrip('[')}")
+        return "\n".join(repr)
 
     def _pretty_repr(self):
         repr = ["\n"]
@@ -54,6 +50,12 @@ class Grid:
         repr.extend([f"{x:^3}" for x in x_range_2])
         repr.append("\n")
         return "".join(repr)
+    
+    def _pretty_repr_domino(self):
+        ...
+    
+    def _pretty_repr_content(self):
+        ...
 
     def _max_x(self):
         return max([x for x, _ in self.grid])
@@ -80,7 +82,7 @@ class Grid:
             self.grid.add((x, y))
             self._update_limits()
         else:
-            print("Le noeud n'a pas été ajouté", file=stderr)
+            print("Le noeud n\'a pas été ajouté", file=stderr)
 
     def _is_not_overbounded_node(self, x, y):
         return (
@@ -141,3 +143,9 @@ class Grid:
         valid_pairs = self._remove_overbounded_pairs(pairs)
         candidates = self._add_flipped_nodes_pairs(valid_pairs)
         return candidates
+    
+    def _score(self, grid): #return score of "grid"
+        ...
+    
+    def score(self): #return score interface
+        return self._score(self.grid)
