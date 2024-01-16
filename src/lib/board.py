@@ -1,4 +1,5 @@
 from typing import NamedTuple
+from copy import deepcopy
 
 from src.lib.dominos import Tile, Decor
 
@@ -41,16 +42,20 @@ class GameBoard:
             for x in range(self.bounds.min_x, self.bounds.max_x+1):
                 if not self._is_not_overbounded_node(x, y):
                     repr.append(" X ")
-                elif (x, y) in playables:
-                    repr.append(" p ")
                 elif (x, y) in self.nodes:
                     repr.append(self.nodes[(x, y)].__repr__())
+                elif (x, y) in playables:
+                    repr.append(" p ")
                 else:
                     repr.append(" . ")
             repr.append("\n")
         repr.append("\n" + " " * 4)
         repr.extend([f"{x:^3}" for x in range(self.bounds.min_x, self.bounds.max_x+1)])
         return "".join(repr)
+    
+
+    def copy(self):
+        return deepcopy(self)
 
 
     def _get_max_x(self):
@@ -143,6 +148,10 @@ class GameBoard:
 
     def _get_existing_neighbors_coords(self, x, y):
         return [pos for pos in self._get_neighbors_coords(x, y) if pos in self.nodes]
+    
+
+    def get_places(self):
+        return self._playable_dominos
 
 
     def add_domino(self, pos_1, pos_2, tiles):
