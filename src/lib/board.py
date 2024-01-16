@@ -173,19 +173,25 @@ class GameBoard:
             if neighbor not in visited and self.nodes[node].decor == self.nodes[neighbor].decor:
                 self._dfs_domain(neighbor, visited)
         return visited
+    
 
-
-    def _score(self, to_visit, score):
-        node = to_visit.pop()
-        domain = self._dfs_domain(node, set())
-        score += len(domain) * sum([self.nodes[n].crown for n in domain])
-        to_visit -= domain
-        if len(to_visit) == 0:
-            return score
-        else:
-            return self._score(to_visit, score)
-
+    def _find_domains(self):
+        to_visit = set(self.nodes)
+        domains = []
+        while len(to_visit) != 0:
+            node = to_visit.pop()
+            visited = self._dfs_domain(node, set())
+            domain = [self.nodes[n] for n in visited]
+            domains.append(domain)
+            to_visit -= visited
+        return domains
+    
 
     def score(self):
-        return self._score(self.nodes.keys() - {(0, 0)}, 0)
+        score = 0 
+        for d in self._find_domains():
+            score += len(d) * sum([i.crown for i in d])
+        return score
+        
+
 
