@@ -1,16 +1,19 @@
 from random import shuffle
+from copy import deepcopy
 
 from lib.dominos import DOMINOS
 
 
 class Deck:
     def __init__(self):
-        self.deck = DOMINOS
+        self.deck = deepcopy(DOMINOS)
         shuffle(self.deck)
         self.remain = len(DOMINOS)
 
+
     def __repr__(self):
         return f"Deck with {self.remain} dominos"
+
 
     def draw(self):
         if self.remain > 0:
@@ -18,6 +21,7 @@ class Deck:
             return self.deck.pop()
         else:
             raise Exception("Deck is empty!")
+
 
     def draw_n(self, n):
         if n <= self.remain:
