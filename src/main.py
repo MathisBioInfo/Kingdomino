@@ -1,21 +1,20 @@
 from lib.deck import Deck
-from lib.player import Player
+from lib.players import GreedyShufflePlayer
 from lib.dominos import Decor
 
 
 def main():
     deck = Deck()
-    ply_1 = Player("P1")
+    ply_1 = GreedyShufflePlayer("P1")
 
     while True:
         domino = deck.draw()
         try:
-            simul = ply_1.simul_placement(domino)
+            ply_1.play(domino)
         except Exception:
             print("Plus de place! Fin du Jeu")
             break
         else:
-            ply_1.play_a_domino(*simul[0][0], domino)
             print(ply_1, end="\n\n")
 
     Decor.legend()
