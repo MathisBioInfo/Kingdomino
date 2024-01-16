@@ -13,6 +13,11 @@ class Decor(Enum):
     SWAMP = Colors.CYAN
     CAPITAL = Colors.WHITE
 
+    @classmethod
+    def legend(cls):
+        leg = [i.value(i.name) for i in list(cls)]
+        print(*leg, sep="; ")
+
 
 class Tile(NamedTuple):
     dom_id: int
@@ -21,9 +26,6 @@ class Tile(NamedTuple):
 
     def __repr__(self):
         return self.decor.value(f"{self.crown:^3}")
-
-    def _alter_repr(self):
-        return self.decor.value(f" {self.decor.name}:{self.crown:^3}")
 
 
 DOMINOS = [
