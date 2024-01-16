@@ -187,11 +187,13 @@ class GameBoard:
         return domains
     
 
-    def score(self):
+    def official_score(self):
         score = 0 
         for d in self._find_domains():
             score += len(d) * sum([i.crown for i in d])
         return score
+    
+    
+    def alter_score(self):
+        return len(self._find_domains())
         
-
-

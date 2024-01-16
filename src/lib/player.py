@@ -21,11 +21,11 @@ class Player:
         for pl in places:
             board_copy = self.board.copy()
             board_copy.add_domino(*pl, domino)
-            simulations.append((pl, board_copy.score()))
+            simulations.append((pl, board_copy.alter_score()))
 
-        return sorted(simulations, key=lambda x: -x[1])
+        return sorted(simulations, key=lambda x: x[1])
     
     
     def play_a_domino(self, pos_1, pos_2, domino):
         self.board.add_domino(pos_1, pos_2, domino)
-        self.score = self.board.score()
+        self.score = self.board.official_score()
