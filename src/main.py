@@ -1,11 +1,11 @@
 from lib.deck import Deck
-from lib.players import GreedyShufflePlayer
+from lib.players import GreedyPlayer
 from lib.dominos import Decor
 
 
 def main():
     deck = Deck()
-    ply_1 = GreedyShufflePlayer("P1")
+    ply_1 = GreedyPlayer("P1")
 
     while True:
         domino = deck.draw()

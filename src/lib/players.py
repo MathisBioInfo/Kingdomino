@@ -62,21 +62,19 @@ class GreedyPlayer(BasePlayer):
 
 
 
-class GreedyShufflePlayer(BasePlayer):
+class StupidPlayer(BasePlayer):
     def _simulation(self, domino):
-        places = self.board.get_places()
+        places = list(self.board.get_places())
         if len(places) == 0:
             raise Exception("No move is possible, end game")
 
+        shuffle(places)
         simulations = []
         for pl in places:
-            board_copy = self.board.copy()
-            board_copy.add_domino(*pl, domino)
-            simulations.append((pl, self._strategy_score(board_copy)))
+            simulations.append((pl, 0))
 
-        shuffle(simulations)
-        return sorted(simulations, key=lambda x: x[1])
+        return simulations
 
 
     def _strategy_score(self, board):
-        return len(board._find_domains())
+        return 0
