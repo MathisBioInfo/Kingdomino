@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import NamedTuple
 
-from src.lib.colors import Colors
+from lib.colors import Colors
 
 
 class Decor(Enum):

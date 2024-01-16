@@ -1,6 +1,6 @@
 from random import shuffle
 
-from src.lib.dominos import DOMINOS
+from lib.dominos import DOMINOS
 
 
 class Deck:

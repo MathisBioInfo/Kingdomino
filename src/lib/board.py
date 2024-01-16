@@ -1,7 +1,7 @@
 from typing import NamedTuple
 from copy import deepcopy
 
-from src.lib.dominos import Tile, Decor
+from lib.dominos import Tile, Decor
 
 
 class Bounds(NamedTuple):
@@ -52,7 +52,7 @@ class GameBoard:
         repr.append("\n" + " " * 4)
         repr.extend([f"{x:^3}" for x in range(self.bounds.min_x, self.bounds.max_x+1)])
         return "".join(repr)
-    
+
 
     def copy(self):
         return deepcopy(self)
@@ -148,7 +148,7 @@ class GameBoard:
 
     def _get_existing_neighbors_coords(self, x, y):
         return [pos for pos in self._get_neighbors_coords(x, y) if pos in self.nodes]
-    
+
 
     def get_places(self):
         return self._playable_dominos
@@ -173,7 +173,7 @@ class GameBoard:
             if neighbor not in visited and self.nodes[node].decor == self.nodes[neighbor].decor:
                 self._dfs_domain(neighbor, visited)
         return visited
-    
+
 
     def _find_domains(self):
         to_visit = set(self.nodes)
@@ -185,15 +185,14 @@ class GameBoard:
             domains.append(domain)
             to_visit -= visited
         return domains
-    
+
 
     def official_score(self):
-        score = 0 
+        score = 0
         for d in self._find_domains():
             score += len(d) * sum([i.crown for i in d])
         return score
-    
-    
+
+
     def alter_score(self):
         return len(self._find_domains())
-        
