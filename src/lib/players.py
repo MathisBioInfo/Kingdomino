@@ -24,7 +24,7 @@ class BasePlayer(ABC):
 
 
     @abstractmethod
-    def _simulation(self, domino):
+    def _best_move(self, domino):
         pass
 
 
@@ -34,9 +34,8 @@ class BasePlayer(ABC):
 
 
     def play(self, domino):
-        simulations = self._simulation(domino)
-        print(simulations[0])
-        self.board.add_domino(*simulations[0][0], domino)
+        best = self._best_move(domino)
+        self.board.add_domino(*best, domino)
         self.score = self.board.score()
         self.last_dom = domino
         self.tour += 1
@@ -44,28 +43,28 @@ class BasePlayer(ABC):
 
 
 class GreedyPlayer(BasePlayer):
-    def _simulation(self, domino):
+    def _best_move(self, domino):
         places = self.board.get_places()
         if len(places) == 0:
             raise GameIsEnd("No move is possible, end game")
-
 
         simulations = []
         for pl in places:
             board_copy = self.board.copy()
             board_copy.add_domino(*pl, domino)
             simulations.append((pl, self._strategy_score(board_copy)))
+            simulations.sort(key=lambda x: x[1]["domains"])
 
-        return sorted(simulations, key=lambda x: x[1])
+        return simulations[0][0]
 
 
     def _strategy_score(self, board):
-        return len(board._find_domains())
+        return {"domains": len(board._find_domains())}
 
 
 
 class GreedyCompactPlayer(BasePlayer):
-    def _simulation(self, domino):
+    def _best_move(self, domino):
         places = self.board.get_places()
         if len(places) == 0:
             raise GameIsEnd("No move is possible, end game")
@@ -75,8 +74,9 @@ class GreedyCompactPlayer(BasePlayer):
             board_copy = self.board.copy()
             board_copy.add_domino(*pl, domino)
             simulations.append((pl, self._strategy_score(board_copy)))
+            simulations.sort(key=lambda x: (x[1]["domains"], x[1]["area"]))
 
-        return sorted(simulations, key=lambda x: (x[1]["domains"], x[1]["area"]))
+        return simulations[0][0]
 
 
     def _strategy_score(self, board: GameBoard):
@@ -91,17 +91,13 @@ class GreedyCompactPlayer(BasePlayer):
 
 
 class StupidPlayer(BasePlayer):
-    def _simulation(self, domino):
+    def _best_move(self, domino):
         places = list(self.board.get_places())
         if len(places) == 0:
             raise GameIsEnd("No move is possible, end game")
 
         shuffle(places)
-        simulations = []
-        for pl in places:
-            simulations.append((pl, 0))
-
-        return simulations
+        return places[0]
 
 
     def _strategy_score(self, board):
