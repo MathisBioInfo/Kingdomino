@@ -22,11 +22,24 @@ class BasePlayer(ABC):
         pass
 
 
+    @abstractmethod
+    def _strategy_score(self, board):
+        pass
+
+
+    def board_score(self):
+        score = 0
+        for d in self.board._find_domains():
+            score += len(d) * sum([i.crown for i in d])
+        return score
+
+
     def play(self, domino):
         simulations = self._simulation(domino)
         self.board.add_domino(*simulations[0][0], domino)
-        self.score = self.board.official_score()
+        self.score = self.board_score()
         self.last_dom = domino
+
 
 
 class GreedyPlayer(BasePlayer):
@@ -39,9 +52,14 @@ class GreedyPlayer(BasePlayer):
         for pl in places:
             board_copy = self.board.copy()
             board_copy.add_domino(*pl, domino)
-            simulations.append((pl, board_copy.alter_score()))
+            simulations.append((pl, self._strategy_score(board_copy)))
 
         return sorted(simulations, key=lambda x: x[1])
+
+
+    def _strategy_score(self, board):
+        return len(board._find_domains())
+
 
 
 class GreedyShufflePlayer(BasePlayer):
@@ -55,6 +73,10 @@ class GreedyShufflePlayer(BasePlayer):
         for pl in places:
             board_copy = self.board.copy()
             board_copy.add_domino(*pl, domino)
-            simulations.append((pl, board_copy.alter_score()))
+            simulations.append((pl, self._strategy_score(board_copy)))
 
         return sorted(simulations, key=lambda x: x[1])
+
+
+    def _strategy_score(self, board):
+        return len(board._find_domains())
