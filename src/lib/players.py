@@ -42,7 +42,7 @@ class BasePlayer(ABC):
 
 class GreedyPlayer(BasePlayer):
     def _best_move(self, domino):
-        places = self.board.get_places()
+        places = self.board.get_places(domino)
         if len(places) == 0:
             raise GameIsEnd("No move is possible, end game")
 
@@ -63,7 +63,7 @@ class GreedyPlayer(BasePlayer):
 
 class GreedyCompactPlayer(BasePlayer):
     def _best_move(self, domino):
-        places = self.board.get_places()
+        places = self.board.get_places(domino)
         if len(places) == 0:
             raise GameIsEnd("No move is possible, end game")
 
@@ -89,7 +89,7 @@ class GreedyCompactPlayer(BasePlayer):
 
 class GreedyPerimeterPlayer(BasePlayer):
     def _best_move(self, domino):
-        places = self.board.get_places()
+        places = self.board.get_places(domino)
         if len(places) == 0:
             raise GameIsEnd("No move is possible, end game")
 
@@ -112,7 +112,7 @@ class GreedyPerimeterPlayer(BasePlayer):
 
 class StupidPlayer(BasePlayer):
     def _best_move(self, domino):
-        places = list(self.board.get_places())
+        places = list(self.board.get_places(domino))
         if len(places) == 0:
             raise GameIsEnd("No move is possible, end game")
 
