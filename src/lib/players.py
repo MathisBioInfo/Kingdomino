@@ -87,6 +87,13 @@ class GreedyCompactPlayer(BasePlayer):
         }
 
 
+class GreedyPerimeterPlayer(BasePlayer):
+    def _strategy_score(self, board: GameBoard):
+        return {
+            "domains": len(board._find_domains()),
+            "perimeter": ...
+        }
+
 
 class StupidPlayer(BasePlayer):
     def _best_move(self, domino):

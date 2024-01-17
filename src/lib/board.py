@@ -40,12 +40,12 @@ class GameBoard:
         for y in range(self.bounds.max_y, self.bounds.min_y-1, -1):
             repr.append(f"{y:^3}" + " " * 1)
             for x in range(self.bounds.min_x, self.bounds.max_x+1):
-                if not self._is_not_overbounded_node(x, y):
-                    repr.append(" X ")
-                elif (x, y) in self.nodes:
+                if (x, y) in self.nodes:
                     repr.append(self.nodes[(x, y)].__repr__())
                 elif (x, y) in playables:
                     repr.append(" p ")
+                elif not self._is_not_overbounded_node(x, y):
+                    repr.append(" X ")
                 else:
                     repr.append(" . ")
             repr.append("\n")
@@ -88,7 +88,7 @@ class GameBoard:
         self._playable_nodes = {p for p in playables if self._is_not_overbounded_node(*p)}
 
 
-    def _update_playable_dominos(self):
+    def _update_playable_dominos(self): #a optimise de recurence
         res = []
         for p in self._playable_nodes:
             playables = cartesian_product([p], self._get_free_neighbors_coords(*p))
@@ -192,3 +192,12 @@ class GameBoard:
         for d in self._find_domains():
             score += len(d) * sum([i.crown for i in d])
         return score
+    
+    
+    def _get_perimeter(self):
+        perim_nodes = []
+        for node in self.nodes:
+            perim_nodes.extend(self._get_free_neighbors_coords(*node))
+
+        return len([ len(self._get_existing_neighbors_coords(*n)) for n in perim_nodes])
+
