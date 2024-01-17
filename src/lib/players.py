@@ -4,8 +4,12 @@ from random import shuffle
 from lib.board import GameBoard
 
 
-class GameIsEnd(Exception):
-   pass
+class NoMorePlace(Exception):
+    pass
+
+
+class DominoNotPlayable(Exception):
+    pass
 
 
 class BasePlayer(ABC):
@@ -31,20 +35,28 @@ class BasePlayer(ABC):
         pass
 
 
+    def _domino_checker(self, domino):
+        if len(self.board._playable_dominos) == 0:
+            raise NoMorePlace("Plus de place :(")
+
+        if len(self.board.get_places(domino)) == 0:
+            raise DominoNotPlayable("Pas compatible")
+
+
     def play(self, domino):
+        self.tour += 1
+        self.last_dom = domino
         best = self._best_move(domino)
         self.board.add_domino(*best, domino)
         self.score = self.board.score()
-        self.last_dom = domino
-        self.tour += 1
 
 
 
 class GreedyPlayer(BasePlayer):
     def _best_move(self, domino):
+        self._domino_checker(domino)
+
         places = self.board.get_places(domino)
-        if len(places) == 0:
-            raise GameIsEnd("No move is possible, end game")
 
         simulations = []
         for pl in places:
@@ -63,9 +75,9 @@ class GreedyPlayer(BasePlayer):
 
 class GreedyCompactPlayer(BasePlayer):
     def _best_move(self, domino):
+        self._domino_checker(domino)
+
         places = self.board.get_places(domino)
-        if len(places) == 0:
-            raise GameIsEnd("No move is possible, end game")
 
         simulations = []
         for pl in places:
@@ -89,9 +101,9 @@ class GreedyCompactPlayer(BasePlayer):
 
 class GreedyPerimeterPlayer(BasePlayer):
     def _best_move(self, domino):
+        self._domino_checker(domino)
+
         places = self.board.get_places(domino)
-        if len(places) == 0:
-            raise GameIsEnd("No move is possible, end game")
 
         simulations = []
         for pl in places:
@@ -101,20 +113,20 @@ class GreedyPerimeterPlayer(BasePlayer):
         simulations.sort(key=lambda x: (x[1]["domains"], x[1]["perimeter"]))
 
         return simulations[0][0]
-    
+
 
     def _strategy_score(self, board: GameBoard):
         return {
             "domains": len(board._find_domains()),
-            "perimeter": board._get_perimeter()    
+            "perimeter": board._get_perimeter()
         }
 
 
 class StupidPlayer(BasePlayer):
     def _best_move(self, domino):
-        places = list(self.board.get_places(domino))
-        if len(places) == 0:
-            raise GameIsEnd("No move is possible, end game")
+        self._domino_checker(domino)
+
+        places = self.board.get_places(domino)
 
         shuffle(places)
         return places[0]
