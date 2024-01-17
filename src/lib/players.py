@@ -88,10 +88,25 @@ class GreedyCompactPlayer(BasePlayer):
 
 
 class GreedyPerimeterPlayer(BasePlayer):
+    def _best_move(self, domino):
+        places = self.board.get_places()
+        if len(places) == 0:
+            raise GameIsEnd("No move is possible, end game")
+
+        simulations = []
+        for pl in places:
+            board_copy = self.board.copy()
+            board_copy.add_domino(*pl, domino)
+            simulations.append((pl, self._strategy_score(board_copy)))
+        simulations.sort(key=lambda x: (x[1]["domains"], x[1]["perimeter"]))
+
+        return simulations[0][0]
+    
+
     def _strategy_score(self, board: GameBoard):
         return {
             "domains": len(board._find_domains()),
-            "perimeter": ...
+            "perimeter": board._get_perimeter()    
         }
 
 
