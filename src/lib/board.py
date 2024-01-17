@@ -203,10 +203,19 @@ class GameBoard:
 
 
     def score(self):
-        score = 0
+        base_score = 0
         for d in self._find_domains():
-            score += len(d) * sum([i.crown for i in d])
-        return score
+            base_score += len(d) * sum([i.crown for i in d])
+
+        if len(self.nodes) == self.initial_bounds.max_x * self.initial_bounds.max_y:
+            base_score += 5
+
+        if self.bounds.max_x == 3 and self.bounds.min_x == -3 \
+            and self.bounds.max_y == 3 and self.bounds.min_y == -3:
+            base_score += 10
+
+        return base_score
+
 
 
     def _get_perimeter(self):
