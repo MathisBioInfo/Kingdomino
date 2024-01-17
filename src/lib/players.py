@@ -5,9 +5,7 @@ from lib.board import GameBoard
 
 
 class GameIsEnd(Exception):
-    def __init__(self, msg):
-        self.message = msg
-        super().__init__(self.message)
+   pass
 
 
 class BasePlayer(ABC):
@@ -53,7 +51,7 @@ class GreedyPlayer(BasePlayer):
             board_copy = self.board.copy()
             board_copy.add_domino(*pl, domino)
             simulations.append((pl, self._strategy_score(board_copy)))
-            simulations.sort(key=lambda x: x[1]["domains"])
+        simulations.sort(key=lambda x: x[1]["domains"])
 
         return simulations[0][0]
 
@@ -74,14 +72,14 @@ class GreedyCompactPlayer(BasePlayer):
             board_copy = self.board.copy()
             board_copy.add_domino(*pl, domino)
             simulations.append((pl, self._strategy_score(board_copy)))
-            simulations.sort(key=lambda x: (x[1]["domains"], x[1]["area"]))
+        simulations.sort(key=lambda x: (x[1]["domains"], x[1]["area"]))
 
         return simulations[0][0]
 
 
     def _strategy_score(self, board: GameBoard):
         return {
-            "domains":len(board._find_domains()),
+            "domains": len(board._find_domains()),
             "area": (
                 (board._get_max_x() - board._get_min_x() + 1)
                 * (board._get_max_y() - board._get_min_y() + 1)
@@ -101,4 +99,4 @@ class StupidPlayer(BasePlayer):
 
 
     def _strategy_score(self, board):
-        return 0
+        pass
