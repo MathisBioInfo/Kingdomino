@@ -88,7 +88,7 @@ class GameBoard:
         self._playable_nodes = {p for p in playables if self._is_not_overbounded_node(*p)}
 
 
-    def _update_playable_dominos(self): #a optimise de recurence
+    def _update_playable_dominos(self): #A optimisé avec une récurrence à l'instar de _update_playable_nodes()
         res = []
         for p in self._playable_nodes:
             playables = cartesian_product([p], self._get_free_neighbors_coords(*p))
@@ -150,8 +150,23 @@ class GameBoard:
         return [pos for pos in self._get_neighbors_coords(x, y) if pos in self.nodes]
 
 
-    def get_places(self):
-        return self._playable_dominos
+    def get_places(self, domino):
+        compatible_places = []
+        decor_1 = domino[0].decor
+        decor_2 = domino[1].decor
+        for pos_1, pos_2 in self._playable_dominos:
+
+            for v1 in self._get_existing_neighbors_coords(*pos_1):
+                if self.nodes[v1].decor == decor_1 or self.nodes[v1].decor is Decor.CAPITAL:
+                    compatible_places.append((pos_1, pos_2))
+                    break
+
+            for v2 in self._get_existing_neighbors_coords(*pos_2):
+                if (self.nodes[v2].decor == decor_2 or self.nodes[v2].decor is Decor.CAPITAL):
+                    compatible_places.append((pos_1, pos_2))
+                    break
+
+        return list(set(compatible_places))
 
 
     def add_domino(self, pos_1, pos_2, tiles):
@@ -188,12 +203,21 @@ class GameBoard:
 
 
     def score(self):
-        score = 0
+        base_score = 0
         for d in self._find_domains():
-            score += len(d) * sum([i.crown for i in d])
-        return score
-    
-    
+            base_score += len(d) * sum([i.crown for i in d])
+
+        if len(self.nodes) == self.initial_bounds.max_x * self.initial_bounds.max_y:
+            base_score += 5
+
+        if self.bounds.max_x == 3 and self.bounds.min_x == -3 \
+            and self.bounds.max_y == 3 and self.bounds.min_y == -3:
+            base_score += 10
+
+        return base_score
+
+
+
     def _get_perimeter(self):
         perim_nodes = []
         for node in self.nodes:
