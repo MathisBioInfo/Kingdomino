@@ -11,17 +11,21 @@ class GamesTwoPlayers:
         self.reserved = []
     
     def start_game(self):
-        players = [self.player_A, self.player_B]
-        random.shuffle(players)
-        turn_order = players + players[::-1]  # [first, second, second, first]
-        
+        turn_order = self.determine_turn_order()
+
         self.first_round(turn_order)
         self.n_round += 1
+
         for i in range(11):
             self.other_round()
             self.n_round +=1
         self.last_round()
         self.final_score()
+
+    def determine_turn_order(self):
+        players = [self.player_A, self.player_B]
+        random.shuffle(players)
+        return players + players[::-1]  # [first, second, second, first]
 
     def first_round(self,turn_order):
         shop = self.deck.draw_n(4)
@@ -31,7 +35,8 @@ class GamesTwoPlayers:
 
     def other_round(self):
         shop = self.deck.draw_n(4)
-        for player, domino in self.define_running_order():
+        order = self.define_running_order()
+        for player, domino in order:
             self.reserved.append((player,player.pick_domino(shop)))
             player.play(domino)
     
