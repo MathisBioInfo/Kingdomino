@@ -25,6 +25,6 @@ class Deck:
 
     def draw_n(self, n):
         if n <= self.remain:
-            return [self.draw() for _ in range(n)]
+            return sorted([self.draw() for _ in range(n)], key=lambda x: x[0].dom_id)
         else:
             raise Exception("Deck does not have enough dominos")
