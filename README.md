@@ -15,5 +15,5 @@ Ce programme simule une partie d'un sous-jeu de KingDomino:
 ## Setup conda env
 
 ```bash 
-conda env create -f conda-requirement.yml
+conda env create -f requirement.yml
 ```
