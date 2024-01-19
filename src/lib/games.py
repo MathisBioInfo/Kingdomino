@@ -6,6 +6,7 @@ class GamesTwoPlayers:
     def __init__(self,player_A,player_B) -> None:
         self.player_A = player_A
         self.player_B = player_B
+        self.players = [self.player_A, self.player_B]
         self.deck = Deck()
         self.n_round = 0
         self.reserved = []
@@ -23,9 +24,8 @@ class GamesTwoPlayers:
         self.final_score()
 
     def determine_turn_order(self):
-        players = [self.player_A, self.player_B]
-        random.shuffle(players)
-        return players + players[::-1]  # [first, second, second, first]
+        random.shuffle(self.players)
+        return self.players + self.players[::-1]  # [first, second, second, first]
 
     def first_round(self,turn_order):
         shop = self.deck.draw_n(4)
@@ -51,7 +51,11 @@ class GamesTwoPlayers:
         return running_order
     
     def final_score(self):
-        raise NotImplementedError("à faire")
+        score_list = []
+        for player in self.players:
+            score_list.append((player,player.score))
+        sorted(score_list, key=lambda x: x[1])
+        return score_list
 
         
 
