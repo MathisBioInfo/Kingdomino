@@ -43,14 +43,24 @@ class BasePlayer(ABC):
             raise DominoNotPlayable("Pas compatible")
         
     def pick_domino(self, shop):
-        raise NotImplementedError("mécanique choix domino dans le shop à stocker dans reserved, voir dans games.py")
+        res = [] #attention, le choix du domino devrait être à la discretion du joueur et non forcé dans pick domino
+        for domino in shop:
+            print(f'best move:{self._best_move(domino)}')
+            domino_score = self._best_move(domino)[1]["domains"]
+            res.append((domino,domino_score))
+        print("res:")
+        print(res)
+        best_domino = sorted(res,key = lambda x: x[1])[0][0]
+        shop.remove(best_domino)
+        return best_domino
+        #raise NotImplementedError("mécanique choix domino dans le shop à stocker dans reserved, voir dans games.py")
 
 
     def play(self, domino):
         self.tour += 1
         self.last_dom = domino
         best = self._best_move(domino)
-        self.board.add_domino(*best, domino)
+        self.board.add_domino(*best[0], domino)
         self.score = self.board.score()
 
 
@@ -68,7 +78,7 @@ class GreedyPlayer(BasePlayer):
             simulations.append((pl, self._strategy_score(board_copy)))
         simulations.sort(key=lambda x: x[1]["domains"])
 
-        return simulations[0][0]
+        return simulations[0] 
 
 
     def _strategy_score(self, board):
@@ -89,7 +99,7 @@ class GreedyCompactPlayer(BasePlayer):
             simulations.append((pl, self._strategy_score(board_copy)))
         simulations.sort(key=lambda x: (x[1]["domains"], x[1]["area"]))
 
-        return simulations[0][0]
+        return simulations[0]
 
 
     def _strategy_score(self, board: GameBoard):
@@ -115,7 +125,7 @@ class GreedyPerimeterPlayer(BasePlayer):
             simulations.append((pl, self._strategy_score(board_copy)))
         simulations.sort(key=lambda x: (x[1]["domains"], x[1]["perimeter"]))
 
-        return simulations[0][0]
+        return simulations[0]
 
 
     def _strategy_score(self, board: GameBoard):
