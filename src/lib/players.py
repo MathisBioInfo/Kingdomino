@@ -41,6 +41,9 @@ class BasePlayer(ABC):
 
         if len(self.board.get_places(domino)) == 0:
             raise DominoNotPlayable("Pas compatible")
+        
+    def pick_domino(self, shop):
+        raise NotImplementedError("mécanique choix domino dans le shop à stocker dans reserved, voir dans games.py")
 
 
     def play(self, domino):
