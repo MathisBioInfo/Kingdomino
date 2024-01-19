@@ -12,8 +12,8 @@ class GamesTwoPlayers:
         self.reserved = []
     
     def start_game(self):
-        turn_order = self.determine_turn_order()
-
+        #turn_order = self.determine_turn_order()
+        turn_order = self.define_running_order(self.n_round)
         self.first_round(turn_order)
         self.n_round += 1
 
@@ -23,32 +23,38 @@ class GamesTwoPlayers:
         self.last_round()
         self.final_score()
 
-    def determine_turn_order(self):
-        random.shuffle(self.players)
-        return self.players + self.players[::-1]  # [first, second, second, first]
+    #def determine_turn_order(self): #determine running order for first_round
+    #    random.shuffle(self.players)
+    #    return self.players + self.players[::-1]  # [first, second, second, first]
 
     def first_round(self,turn_order):
-        shop = self.deck.draw_n(4)
+        print("start first round: \n")
+        shop = self.deck.draw_n(2)
         self.reserved = []
         for player in turn_order:
             self.reserved.append((player, player.pick_domino(shop)))
+        print("end first round \n")
 
     def other_round(self):
-        shop = self.deck.draw_n(4)
-        order = self.define_running_order()
+        print("start other round: \n")
+        shop = self.deck.draw_n(2)
+        order = self.define_running_order(self.n_round)
+        print(f'len order: {len(order)}')
+        print(f'order: {order}')
         for player, domino in order:
             self.reserved.append((player,player.pick_domino(shop)))
             player.play(domino)
+        print("end other round: \n")
     
     def last_round(self):
-        for player, domino in self.define_running_order():
+        for player, domino in self.define_running_order(self.n_round):
             player.play(domino)
 
 
-    def define_running_order(self):
-        running_order = sorted(self.reserved, key=lambda x: x[1][0].dom_id)
-        self.reserved = []
-        return running_order
+    #def define_running_order(self): #determine the running order for other_round and last_round
+    #    running_order = sorted(self.reserved, key=lambda x: x[1][0].dom_id)
+    #    self.reserved = []
+    #    return running_order
     
     def final_score(self):
         score_list = []
@@ -56,6 +62,16 @@ class GamesTwoPlayers:
             score_list.append((player,player.score))
         sorted(score_list, key=lambda x: x[1])
         return score_list
+    
+    def define_running_order(self,n_round):
+        if n_round == 0:
+            random.shuffle(self.players)
+            running_order = self.players #+ self.players[::-1]
+        else :
+            running_order = sorted(self.reserved, key=lambda x: x[1][0].dom_id)
+            self.reserved = []
+        return running_order
+
 
         
 
