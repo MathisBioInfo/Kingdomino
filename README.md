@@ -12,3 +12,8 @@ Ce programme simule une partie d'un sous-jeu de KingDomino:
 - Pas de règles avancées tel que "Empire du Milieu" ou "Harmonie"
 - Algorithme glouton visant à réduire minimiser le nombre de domaine dans le plateau
 
+## Setup conda env
+
+```bash 
+conda env create -f conda-requirement.yml
+```
