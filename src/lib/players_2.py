@@ -37,31 +37,38 @@ class BasePlayer(ABC):
 
     def _domino_checker(self, domino):
         if len(self.board._playable_dominos) == 0:
-            raise NoMorePlace("Plus de place :(")
+            raise DominoNotPlayable("Plus de place :(")
 
         if len(self.board.get_places(domino)) == 0:
             raise DominoNotPlayable("Pas compatible")
-        
+
     def pick_domino(self, shop):
-        res = [] #attention, le choix du domino devrait être à la discretion du joueur et non forcé dans pick domino
+        res = []
         for domino in shop:
-            print(f'best move:{self._best_move(domino)}')
-            domino_score = self._best_move(domino)[1]["domains"]
-            res.append((domino,domino_score))
-        print("res:")
-        print(res)
-        best_domino = sorted(res,key = lambda x: x[1])[0][0]
+            try:
+                best_move = self._best_move(domino)
+                #print(f'best move: {best_move}')
+                domino_score = best_move[1]["domains"]
+                res.append((domino, domino_score))
+            except DominoNotPlayable:
+                # Handle the case where no move is possible for this domino
+                res.append((domino, -1))  # Indicate an unplayable domino
+        best_domino = sorted(res, key=lambda x: x[1])[0][0]
         shop.remove(best_domino)
         return best_domino
-        #raise NotImplementedError("mécanique choix domino dans le shop à stocker dans reserved, voir dans games.py")
-
 
     def play(self, domino):
         self.tour += 1
         self.last_dom = domino
-        best = self._best_move(domino)
-        self.board.add_domino(*best[0], domino)
-        self.score = self.board.score()
+        try:
+            best = self._best_move(domino)
+            self.board.add_domino(*best[0], domino)
+            self.score = self.board.score()
+        except DominoNotPlayable:
+            #print(f"No valid moves for {self.name} with domino {domino}. Passing turn.")
+            pass
+            # Handle passing the turn (if additional logic is needed)
+
 
 
 
@@ -77,8 +84,12 @@ class GreedyPlayer(BasePlayer):
             board_copy.add_domino(*pl, domino)
             simulations.append((pl, self._strategy_score(board_copy)))
         simulations.sort(key=lambda x: x[1]["domains"])
+        if len(simulations) != 0:
+            return simulations[0] 
+        else:
+            raise DominoNotPlayable
 
-        return simulations[0] 
+        
 
 
     def _strategy_score(self, board):
