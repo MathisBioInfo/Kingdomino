@@ -1,7 +1,0 @@
-name: kingdom_env
-dependencies:
-  - conda-forge::matplotlib =3.8
-  - conda-forge:pytest =7.4
-  - conda-forge::python =3.11
-  - pytorch::pytorch =2.1
-  - conda-forge::seaborn =0.13
