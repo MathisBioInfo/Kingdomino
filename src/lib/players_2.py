@@ -47,7 +47,7 @@ class BasePlayer(ABC):
         for domino in shop:
             try:
                 best_move = self._best_move(domino)
-                print(f'best move: {best_move}')
+                #print(f'best move: {best_move}')
                 domino_score = best_move[1]["domains"]
                 res.append((domino, domino_score))
             except DominoNotPlayable:
@@ -65,7 +65,8 @@ class BasePlayer(ABC):
             self.board.add_domino(*best[0], domino)
             self.score = self.board.score()
         except DominoNotPlayable:
-            print(f"No valid moves for {self.name} with domino {domino}. Passing turn.")
+            #print(f"No valid moves for {self.name} with domino {domino}. Passing turn.")
+            pass
             # Handle passing the turn (if additional logic is needed)
 
 

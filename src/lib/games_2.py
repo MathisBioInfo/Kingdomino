@@ -23,9 +23,9 @@ class KingdominoGame:
         self.first_round()
         self.n_round += 1
 
-        for i in range(1,11):
-            self.other_round()
+        for i in range(1,12):
             self.n_round +=1
+            self.other_round()
         self.last_round()
         self.n_round +=1
         score = self.final_score()
@@ -41,15 +41,13 @@ class KingdominoGame:
         print("end first round \n")
 
     def other_round(self):
-        print("start other round: \n")
+        print(f"start {self.n_round} round: \n")
         turn_order = self.define_running_order(self.n_round)
         shop = self.deck.draw_n(len(turn_order))
-        print(turn_order[1][1])
         for player, domino in turn_order:
             self.reserved.append((player,player.pick_domino(shop)))
             player.play(domino)
-            print('TEST')
-        print("end other round: \n")
+        print(f"end {self.n_round} round: \n")
     
     def last_round(self):
         turn_order = self.define_running_order(self.n_round)
