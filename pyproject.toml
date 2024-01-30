@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "kingdomino"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+gymnasium = "^0.29.1"
+numpy = "^1.26.3"
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+gymnasium = "^0.29.1"
+jupyter = "^1.0.0"
+mypy = "^1.8.0"
+numpy = "^1.26.3"
+pytest = "^7.4.4"
+python = "^3.11"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
