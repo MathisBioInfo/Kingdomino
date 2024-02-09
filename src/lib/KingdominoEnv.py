@@ -6,15 +6,15 @@ import numpy as np
 class BasicTilePlacementEnv(gym.Env):
     def __init__(self):
         super(BasicTilePlacementEnv, self).__init__()
-        self.board_size = 5  # Define the board size
+        self.board_size = 5
         self.domino_set = [(1,1),(1,2),(1,3),(2,1),(2,2),(2,3),(3,3)]  # Example predefined set of dominos
-        # Define the action space (x, y coordinates for tile placement)
-        # Update the action space to include tile color (1-4)
+
         self.action_space = spaces.Tuple((
-            spaces.Discrete(len(self.domino_set)),  # Selecting a domino
-            spaces.Discrete(self.board_size),  # x coordinate
-            spaces.Discrete(self.board_size),  # y coordinate
-            spaces.Discrete(4),                # orientation (up, down, left, right)
+            spaces.Discrete(len(self.domino_set)),  # Domino selection
+            spaces.Discrete(self.board_size),       # x1 coordinate
+            spaces.Discrete(self.board_size),       # y1 coordinate
+            spaces.Discrete(self.board_size),       # x2 coordinate
+            spaces.Discrete(self.board_size)        # y2 coordinate
         ))
 
         # Define the observation space (the state of the board)
@@ -24,35 +24,36 @@ class BasicTilePlacementEnv(gym.Env):
 
         self.state = None  # To keep track of the board state
 
-    def is_valid_placement(self, start, direction, tile_color):
-        # Assume tile_color parameter is passed, indicating the color of the domino being placed.
-        # Calculate the second tile's position based on direction
-        if direction == 'up':
-            end = (start[0] - 1, start[1])
-        elif direction == 'down':
-            end = (start[0] + 1, start[1])
-        elif direction == 'left':
-            end = (start[0], start[1] - 1)
-        elif direction == 'right':
-            end = (start[0], start[1] + 1)
-        else:
-            return False  # Invalid direction
-
-        # Check for out-of-bounds or overlapping tiles
-        if not (0 <= end[0] < self.board_size and 0 <= end[1] < self.board_size):
+    def is_valid_placement(self, start, start_color, end, end_color):
+        # Check for out-of-bounds
+        if not (0 <= start[0] < self.board_size and 0 <= start[1] < self.board_size and
+                0 <= end[0] < self.board_size and 0 <= end[1] < self.board_size):
             return False
+
+        # Check if either end is already occupied
         if self.state[start[0]][start[1]] != 0 or self.state[end[0]][end[1]] != 0:
             return False
-
-        # Adjust the touching check for color or special tile
-        touching = False
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            adj_cell = (start[0] + dx, start[1] + dy)
-            if 0 <= adj_cell[0] < self.board_size and 0 <= adj_cell[1] < self.board_size:
-                if self.state[adj_cell[0]][adj_cell[1]] == tile_color or self.state[adj_cell[0]][adj_cell[1]] == 5:
-                    touching = True
-        if not touching:
+        
+        # Ensure the domino is placed either horizontally or vertically adjacent
+        if not (start[0] == end[0] and abs(start[1] - end[1]) == 1 or
+                start[1] == end[1] and abs(start[0] - end[0]) == 1):
             return False
+        
+        def check_adjacent_matching_color(position, color):
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                adj_x, adj_y = position[0] + dx, position[1] + dy
+                if 0 <= adj_x < self.board_size and 0 <= adj_y < self.board_size:
+                    # Check if the adjacent cell matches the color
+                    if self.state[adj_x][adj_y] == color or self.state[adj_x][adj_y] == 5:
+                        return True
+            return False
+        
+        start_matching = check_adjacent_matching_color(start, start_color)
+        end_matching = check_adjacent_matching_color(end, end_color)
+
+         # At least one end of the domino must match an adjacent color
+        if not start_matching and not end_matching:
+            return False  # Neither end has a matching adjacent color
 
         return True
 
@@ -79,33 +80,24 @@ class BasicTilePlacementEnv(gym.Env):
     
     def step(self, action):
         # Decode the action into position (x, y), orientation, and tile color
-        domino_index, x, y, orientation = action
-        directions = ['up', 'down', 'left', 'right']
-        direction = directions[orientation]
+        domino_index, x1, y1, x2, y2 = action
         
         # Check if the selected domino is valid (not already placed)
         if domino_index >= len(self.domino_set):
             return self.state, -1, False, {"reason": "Invalid domino selection"}
 
         selected_domino = self.domino_set[domino_index]
-        tile_color = selected_domino[0]
+        start_color = selected_domino[0]
+        end_color = selected_domino[0]
 
         # Check if the placement is valid with the added tile color
-        if not self.is_valid_placement((x, y), direction, tile_color):
+        if not self.is_valid_placement((x1, y1), start_color, (x2, y2), end_color):
             # Penalize invalid moves to discourage them
             return self.state, -1, False, {"reason": "Invalid placement"}
-
-        # Calculate the second tile's position based on the direction
-        second_tile = {
-            'up': (x - 1, y),
-            'down': (x + 1, y),
-            'left': (x, y - 1),
-            'right': (x, y + 1)
-        }[direction]
-
+        
         # Place the domino on the board with its color
-        self.state[x][y] = selected_domino[0]
-        self.state[second_tile[0]][second_tile[1]] = selected_domino[1]
+        self.state[x1][y1] = selected_domino[0] #(1,selected_domino[0])
+        self.state[x2][y2] = selected_domino[1] #(1,selected_domino[1])
 
         # Check if the game is done
         done = self.check_game_over()
@@ -124,6 +116,7 @@ class BasicTilePlacementEnv(gym.Env):
     def reset(self):
         # Reset the environment to an initial state
         self.state = [[0 for _ in range(self.board_size)] for _ in range(self.board_size)]
+        #self.state = [[(0, 0) for _ in range(self.board_size)] for _ in range(self.board_size)]
         
         # Set the center position to 1
         center_row = self.board_size // 2
@@ -165,3 +158,27 @@ class BasicTilePlacementEnv(gym.Env):
 
         plt.show()
 
+def test_environment(env_class, number_of_episodes):
+    """
+    Test the given environment by running a specified number of episodes.
+    
+    Parameters:
+    - env_class: The environment class to be tested.
+    - number_of_episodes: The number of episodes to run.
+    """
+    for episode in range(number_of_episodes):
+        print(f"Starting episode {episode+1}")
+        env = env_class()  # Initialize the environment
+        env.reset()
+        done = False
+        number_of_steps = 0
+        while not done:
+            action = env.action_space.sample()  # Randomly sample an action
+            state, reward, done, info = env.step(action)
+            number_of_steps += 1
+            if done:
+                print(f"Board filled or game over in episode {episode+1}, resetting after {number_of_steps} steps.")
+        env.render()  # Render the final state of the environment
+
+# Example usage
+test_environment(BasicTilePlacementEnv, 2)
