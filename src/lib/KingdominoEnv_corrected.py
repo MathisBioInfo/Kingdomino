@@ -9,8 +9,9 @@ import random
 class BasicTilePlacementEnv(gym.Env):
     def __init__(self):
         super(BasicTilePlacementEnv, self).__init__()
-        self.board_size = 5
+        self.board_size = 9
         self.domino_set = self.generate_dominos()  # Example predefined set of dominos
+        self.min_x = self.max_x = self.min_y = self.max_y = None  # Initialize boundaries
 
         self.action_space = spaces.Tuple((
             spaces.Discrete(len(self.domino_set)),  # Domino selection
@@ -47,6 +48,13 @@ class BasicTilePlacementEnv(gym.Env):
         Returns:
             bool: True if the domino placement is valid, False otherwise.
         """
+        allowable_min_x, allowable_max_x, allowable_min_y, allowable_max_y = self.calculate_allowable_area()
+
+        # Check if start and end positions are within the allowable 5x5 area
+        if not (allowable_min_x <= start[0] <= allowable_max_x and allowable_min_y <= start[1] <= allowable_max_y and
+                allowable_min_x <= end[0] <= allowable_max_x and allowable_min_y <= end[1] <= allowable_max_y):
+            return False
+    
         # Check for out-of-bounds
         if not (0 <= start[0] < self.board_size and 0 <= start[1] < self.board_size and
                 0 <= end[0] < self.board_size and 0 <= end[1] < self.board_size):
@@ -131,6 +139,49 @@ class BasicTilePlacementEnv(gym.Env):
 
         # If there are no empty spaces and no valid moves, the game is over
         return True
+    def update_extremities(self, x: int, y: int) -> None:
+        """
+        Update the minimum and maximum x and y coordinates of the game board based on the given x and y values.
+
+        Args:
+            x (int): The x coordinate of a cell on the game board.
+            y (int): The y coordinate of a cell on the game board.
+
+        Returns:
+            None. The method updates the minimum and maximum x and y coordinates of the game board.
+        """
+        if self.min_x is None or x < self.min_x:
+            self.min_x = x
+        if self.max_x is None or x > self.max_x:
+            self.max_x = x
+        if self.min_y is None or y < self.min_y:
+            self.min_y = y
+        if self.max_y is None or y > self.max_y:
+            self.max_y = y
+            
+    def calculate_allowable_area(self) -> Tuple[int, int, int, int]:
+        """
+        Calculates the allowable area on the game board where the next domino can be placed based on the current state of the board.
+
+        Returns:
+            Tuple[int, int, int, int]: The potential minimum and maximum x and y coordinates that define the allowable area on the game board.
+        """
+        if self.min_x is None:
+            return 2, 6, 2, 6
+
+        potential_min_x = max(0, self.min_x - (4 - (self.max_x - self.min_x)))
+        potential_max_x = min(8, self.max_x + (4 - (self.max_x - self.min_x)))
+        potential_min_y = max(0, self.min_y - (4 - (self.max_y - self.min_y)))
+        potential_max_y = min(8, self.max_y + (4 - (self.max_y - self.min_y)))
+
+        potential_min_x = min(potential_min_x, potential_max_x - 4)
+        potential_min_y = min(potential_min_y, potential_max_y - 4)
+        potential_max_x = max(potential_max_x, potential_min_x + 4)
+        potential_max_y = max(potential_max_y, potential_min_y + 4)
+
+        return potential_min_x, potential_max_x, potential_min_y, potential_max_y
+
+
     
     def step(self, action):
         """
@@ -142,6 +193,10 @@ class BasicTilePlacementEnv(gym.Env):
         Returns:
             tuple: The updated state of the environment after taking the action, the reward obtained from taking the action, a boolean flag indicating whether the game is done, and additional information about the step.
         """
+        if not self.domino_set:
+            # If there are no dominos left, the game is over.
+            return self.state, 0, True, {"reason": "No more dominos to place"}
+        
         domino_index = random.randint(0, len(self.domino_set) - 1)
         if domino_index >= len(self.domino_set):
             return self.state, -1, False, {"reason": "Invalid domino selection"}
@@ -155,6 +210,8 @@ class BasicTilePlacementEnv(gym.Env):
 
         selected_move = random.choice(valid_moves)
         x1, y1, x2, y2 = selected_move
+        self.update_extremities(x1, y1)
+        self.update_extremities(x2, y2)
         self.state[x1][y1], self.state[x2][y2] = selected_domino
         self.domino_set.pop(domino_index)
 
