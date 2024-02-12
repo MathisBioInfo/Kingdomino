@@ -28,15 +28,24 @@ class BasicTilePlacementEnv(gym.Env):
 
         self.state = [[(0, 0) for _ in range(self.board_size)] for _ in range(self.board_size)]  # To keep track of the board state
         
-    def generate_dominos(self):
-        # Example logic to generate dominos with colors and crown values
+    def generate_dominos(self) -> List[Tuple[int, int, int, int]]:
+        """
+        Generate a set of dominos with different colors and crown values.
+
+        Returns:
+            List[Tuple[int, int, int, int]]: A list of 12 randomly selected dominos, where each domino is represented by a tuple of four values: the color and crown value of the first tile, and the color and crown value of the second tile.
+        """
         all_possible_dominos = []
-        for i in range(1, 7):  # Assuming colors are represented by numbers 1-6
-            for j in range(1, 7):
-                for crowns1 in range(0, 4):  # Crown values can be 0-3
-                    for crowns2 in range(0, 4):
-                        all_possible_dominos.append((i, crowns1, j, crowns2))
-        selected_dominos = random.sample(all_possible_dominos, 12)  # Adjust number as needed
+        colors = range(1, 7)
+        crown_values = range(4)
+    
+        for color1 in colors:
+            for color2 in colors:
+                for crown1 in crown_values:
+                    for crown2 in crown_values:
+                        all_possible_dominos.append((color1, crown1, color2, crown2))
+    
+        selected_dominos = random.sample(all_possible_dominos, 12)
         return selected_dominos
 
 
@@ -59,14 +68,14 @@ class BasicTilePlacementEnv(gym.Env):
         if not (allowable_min_x <= start[0] <= allowable_max_x and allowable_min_y <= start[1] <= allowable_max_y and
                 allowable_min_x <= end[0] <= allowable_max_x and allowable_min_y <= end[1] <= allowable_max_y):
             return False
-    
+
         # Check for out-of-bounds
         if not (0 <= start[0] < self.board_size and 0 <= start[1] < self.board_size and
                 0 <= end[0] < self.board_size and 0 <= end[1] < self.board_size):
             return False
 
         # Check if either end is already occupied
-        if self.state[start[0]][start[1]] != (0,0) or self.state[end[0]][end[1]] != (0,0):
+        if self.state[start[0]][start[1]] != (0, 0) or self.state[end[0]][end[1]] != (0, 0):
             return False
 
         # Ensure the domino is placed either horizontally or vertically adjacent
@@ -87,7 +96,6 @@ class BasicTilePlacementEnv(gym.Env):
             """
             for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 adj_x, adj_y = position[0] + dx, position[1] + dy
-                #print(f"adj:{self.state[adj_x][adj_y]}")
                 if 0 <= adj_x < self.board_size and 0 <= adj_y < self.board_size:
                     # Check if the adjacent cell matches the color
                     adj_tile_color, _ = self.state[adj_x][adj_y]
@@ -116,12 +124,14 @@ class BasicTilePlacementEnv(gym.Env):
         """
         valid_moves = []
         start_color, start_crowns, end_color, end_crowns = self.domino_set[domino_index]
+    
         for x1 in range(self.board_size):
             for y1 in range(self.board_size):
-                for (dx, dy) in [(0, 1), (1, 0)]:  # Horizontal or vertical placement
+                for dx, dy in [(0, 1), (1, 0)]:  # Horizontal or vertical placement
                     x2, y2 = x1 + dx, y1 + dy
                     if self.is_valid_placement((x1, y1), start_color, (x2, y2), end_color):
                         valid_moves.append((x1, y1, x2, y2))
+    
         return valid_moves
 
 
