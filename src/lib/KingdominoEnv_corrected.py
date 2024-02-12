@@ -26,14 +26,19 @@ class BasicTilePlacementEnv(gym.Env):
                                     shape=(self.board_size, self.board_size),
                                     dtype=int)
 
-        self.state = None  # To keep track of the board state
+        self.state = [[(0, 0) for _ in range(self.board_size)] for _ in range(self.board_size)]  # To keep track of the board state
         
     def generate_dominos(self):
-            # Example logic to generate a diverse set of 24 dominos
-            # Adjust this logic based on how you want your dominos to be generated
-            all_possible_dominos = [(i, j) for i in range(1, 7) for j in range(1, 7)]  # Example domino values
-            selected_dominos = random.sample(all_possible_dominos, 12)  # Randomly select 12
-            return selected_dominos
+        # Example logic to generate dominos with colors and crown values
+        all_possible_dominos = []
+        for i in range(1, 7):  # Assuming colors are represented by numbers 1-6
+            for j in range(1, 7):
+                for crowns1 in range(0, 4):  # Crown values can be 0-3
+                    for crowns2 in range(0, 4):
+                        all_possible_dominos.append((i, crowns1, j, crowns2))
+        selected_dominos = random.sample(all_possible_dominos, 12)  # Adjust number as needed
+        return selected_dominos
+
 
     def is_valid_placement(self, start: tuple, start_color: int, end: tuple, end_color: int) -> bool:
         """
@@ -61,7 +66,7 @@ class BasicTilePlacementEnv(gym.Env):
             return False
 
         # Check if either end is already occupied
-        if self.state[start[0]][start[1]] != 0 or self.state[end[0]][end[1]] != 0:
+        if self.state[start[0]][start[1]] != (0,0) or self.state[end[0]][end[1]] != (0,0):
             return False
 
         # Ensure the domino is placed either horizontally or vertically adjacent
@@ -82,9 +87,11 @@ class BasicTilePlacementEnv(gym.Env):
             """
             for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 adj_x, adj_y = position[0] + dx, position[1] + dy
+                #print(f"adj:{self.state[adj_x][adj_y]}")
                 if 0 <= adj_x < self.board_size and 0 <= adj_y < self.board_size:
                     # Check if the adjacent cell matches the color
-                    if self.state[adj_x][adj_y] == color or self.state[adj_x][adj_y] == 7:
+                    adj_tile_color, _ = self.state[adj_x][adj_y]
+                    if adj_tile_color == color or adj_tile_color == 7:
                         return True
             return False
 
@@ -108,7 +115,7 @@ class BasicTilePlacementEnv(gym.Env):
             List of tuples representing valid moves (x1, y1, x2, y2).
         """
         valid_moves = []
-        start_color, end_color = self.domino_set[domino_index]
+        start_color, start_crowns, end_color, end_crowns = self.domino_set[domino_index]
         for x1 in range(self.board_size):
             for y1 in range(self.board_size):
                 for (dx, dy) in [(0, 1), (1, 0)]:  # Horizontal or vertical placement
@@ -212,7 +219,11 @@ class BasicTilePlacementEnv(gym.Env):
         x1, y1, x2, y2 = selected_move
         self.update_extremities(x1, y1)
         self.update_extremities(x2, y2)
-        self.state[x1][y1], self.state[x2][y2] = selected_domino
+        # Extract color and crown information
+        color1, crowns1, color2, crowns2 = selected_domino
+        self.state[x1][y1] = (color1, crowns1)
+        self.state[x2][y2] = (color2, crowns2)
+        #self.state[x1][y1], self.state[x2][y2] = selected_domino
         self.domino_set.pop(domino_index)
 
         done = len(self.domino_set) == 0
@@ -228,35 +239,17 @@ class BasicTilePlacementEnv(gym.Env):
         Returns:
             The initial state of the environment, represented as a 2D list of integers.
         """
-        self.state = [[0] * self.board_size for _ in range(self.board_size)]
+        #self.state = [[0] * self.board_size for _ in range(self.board_size)]
+        # Initialize the board to hold (color, crowns) tuples, defaulting to (0, 0) to indicate an empty space
+        self.state = [[(0, 0) for _ in range(self.board_size)] for _ in range(self.board_size)]
         center = self.board_size // 2
-        self.state[center][center] = 7
+        self.state[center][center] = (7,0)
         return self.state
 
     
 
-    def render(self, mode: str = 'human') -> None:
-        """
-        Visualizes the current state of the game board using matplotlib.
-
-        Args:
-            mode (str, optional): The rendering mode. Default is 'human'.
-
-        Returns:
-            None
-        """
-        fig, ax = plt.subplots()
-        ax.set_xlim(0, self.board_size)
-        ax.set_ylim(0, self.board_size)
-        ax.set_xticks(np.arange(0, self.board_size, 1))
-        ax.set_yticks(np.arange(0, self.board_size, 1))
-
-        # Draw gridlines
-        ax.grid(which='both', color='k', linestyle='-', linewidth=1)
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-
-        # Define a color map for the tiles, including the special tile
+    def render(self, mode='human'):
+        # Define a color map for the tiles
         color_map = {
             0: 'white',  # Empty
             1: 'red',    # Color 1
@@ -267,12 +260,21 @@ class BasicTilePlacementEnv(gym.Env):
             6: 'orange', # Color 6
             7: 'pink',   # Color 7
         }
-        # Fill in tiles with corresponding colors
+
+        fig, ax = plt.subplots()
+        ax.set_xlim(0, self.board_size)
+        ax.set_ylim(0, self.board_size)
+        ax.grid(which='both', color='k', linestyle='-', linewidth=1)
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+
         for x in range(self.board_size):
             for y in range(self.board_size):
-                tile_value = self.state[x][y]
+                tile_value, crown_value = self.state[x][y]  # Correctly extract color and crown from the tuple
                 tile_color = color_map.get(tile_value, 'white')
                 ax.add_patch(plt.Rectangle((y, self.board_size - x - 1), 1, 1, fill=True, color=tile_color))
+                if tile_value > 0:
+                    ax.text(y + 0.5, self.board_size - x - 0.5, str(crown_value), ha='center', va='center')
 
         plt.show()
 
@@ -299,4 +301,4 @@ def test_environment(env_class, number_of_episodes):
         env.render()  # Render the final state of the environment
 
 # Example usage
-test_environment(BasicTilePlacementEnv, 2)
+test_environment(BasicTilePlacementEnv, 10)
