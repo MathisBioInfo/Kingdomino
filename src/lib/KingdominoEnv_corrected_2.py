@@ -12,6 +12,33 @@ class BasicTilePlacementEnv(gym.Env):
         super(BasicTilePlacementEnv, self).__init__()
         self.board_size = 9
         self.domino_set = self.generate_dominos()  # Example predefined set of dominos
+        self.domino_set = dominos = [
+                                        (1, [1, 0, 1, 0]), (2, [1, 0, 1, 0]),
+                                        (3, [2, 0, 2, 0]), (4, [2, 0, 2, 0]),
+                                        (5, [2, 0, 2, 0]), (6, [2, 0, 2, 0]),
+                                        (7, [3, 0, 3, 0]), (8, [3, 0, 3, 0]),
+                                        (9, [3, 0, 3, 0]), (10, [4, 0, 4, 0]),
+                                        (11, [4, 0, 4, 0]), (12, [5, 0, 5, 0]),
+                                        (13, [1, 0, 2, 0]), (14, [1, 0, 3, 0]),
+                                        (15, [1, 0, 4, 0]), (16, [4, 0, 5, 0]),
+                                        (17, [2, 0, 3, 0]), (18, [2, 0, 4, 0]),
+                                        (19, [1, 1, 2, 0]), (20, [1, 1, 3, 0]),
+                                        (21, [1, 1, 4, 0]), (22, [1, 1, 5, 0]),
+                                        (23, [1, 1, 6, 0]), (24, [2, 1, 1, 0]),
+                                        (25, [2, 1, 1, 0]), (26, [2, 1, 1, 0]),
+                                        (27, [2, 1, 1, 0]), (28, [2, 1, 3, 0]),
+                                        (29, [2, 1, 4, 0]), (30, [3, 1, 1, 0]),
+                                        (31, [3, 1, 1, 0]), (32, [3, 1, 2, 0]),
+                                        (33, [3, 1, 2, 0]), (34, [3, 1, 2, 0]),
+                                        (35, [3, 1, 2, 0]), (36, [1, 0, 4, 1]),
+                                        (37, [3, 0, 4, 1]), (38, [1, 1, 5, 0]),
+                                        (39, [4, 0, 5, 0]), (40, [6, 1, 1, 0]),
+                                        (41, [1, 0, 4, 2]), (42, [3, 0, 4, 2]),
+                                        (43, [1, 0, 5, 2]), (44, [4, 0, 5, 2]),
+                                        (45, [6, 2, 1, 0]), (46, [5, 0, 6, 2]),
+                                        (47, [5, 0, 6, 2]), (48, [1, 0, 6, 3])
+                                    ] # Real Kingdomino set, format is domino ID (will be used for the draft), [color1,crown1,color2,crown2]
+
         self.min_x = self.max_x = self.min_y = self.max_y = None  # Initialize boundaries
 
         self.action_space = spaces.Tuple((
@@ -75,14 +102,13 @@ class BasicTilePlacementEnv(gym.Env):
 
     def get_valid_moves(self, domino_index: int) -> List[Tuple[int, int, int, int]]:
         valid_moves = []
-        start_color, start_crowns, end_color, end_crowns = self.domino_set[domino_index]
+        start_color, start_crowns, end_color, end_crowns = self.domino_set[domino_index][1]
 
-        for x1 in range(self.board_size):
-            for y1 in range(self.board_size):
-                for dx, dy in [(0, 1), (1, 0)]:
-                    x2, y2 = x1 + dx, y1 + dy
-                    if self.is_valid_placement((x1, y1), start_color, (x2, y2), end_color):
-                        valid_moves.append((x1, y1, x2, y2))
+        for x1, y1 in itertools.product(range(self.board_size), repeat=2):
+            for dx, dy in [(0, 1), (1, 0)]:
+                x2, y2 = x1 + dx, y1 + dy
+                if self.is_valid_placement((x1, y1), start_color, (x2, y2), end_color):
+                    valid_moves.append((x1, y1, x2, y2))
 
         return valid_moves
 
@@ -201,7 +227,7 @@ class BasicTilePlacementEnv(gym.Env):
         if domino_index >= len(self.domino_set):
             return self.state, -1, False, {"reason": "Invalid domino selection"}
 
-        selected_domino = self.domino_set[domino_index]
+        selected_domino = self.domino_set[domino_index][1]
         valid_moves = self.get_valid_moves(domino_index)
 
         if not valid_moves:
@@ -232,18 +258,8 @@ class BasicTilePlacementEnv(gym.Env):
         return self.state
 
     def render(self, mode='human'):
-        color_map = {
-            0: 'white',
-            1: 'red',
-            2: 'green',
-            3: 'blue',
-            4: 'yellow',
-            5: 'purple',
-            6: 'orange',
-            7: 'pink',
-        }
-
-        crown_text_map = {0: '', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '0'}
+        color_map = ['white', 'red', 'green', 'blue', 'yellow', 'purple', 'orange', 'pink']
+        crown_text_map = ['', '1', '2', '3', '4', '5', '6', '0']
 
         fig, ax = plt.subplots()
         ax.set_xlim(0, self.board_size)
@@ -255,7 +271,7 @@ class BasicTilePlacementEnv(gym.Env):
         for x in range(self.board_size):
             for y in range(self.board_size):
                 (tile_value, crown_value) = self.state[x][y]
-                tile_color = color_map.get(tile_value, 'white')
+                tile_color = color_map[tile_value]
                 ax.add_patch(plt.Rectangle((y, self.board_size - x - 1), 1, 1, fill=True, color=tile_color))
                 if tile_value > 0:
                     ax.text(y + 0.5, self.board_size - x - 0.5, crown_text_map[crown_value], ha='center', va='center')
