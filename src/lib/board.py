@@ -219,9 +219,9 @@ class GameBoard:
 
 
     def _get_perimeter(self):
-        perim_nodes = []
+        perim_nodes = set()
         for node in self.nodes:
-            perim_nodes.extend(self._get_free_neighbors_coords(*node))
+            perim_nodes.update(self._get_free_neighbors_coords(*node))
 
-        return len([ len(self._get_existing_neighbors_coords(*n)) for n in perim_nodes])
+        return sum(len(self._get_existing_neighbors_coords(*n)) for n in perim_nodes)
 

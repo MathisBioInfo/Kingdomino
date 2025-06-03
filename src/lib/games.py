@@ -54,7 +54,7 @@ class GamesTwoPlayers:
         score_list = []
         for player in self.players:
             score_list.append((player,player.score))
-        sorted(score_list, key=lambda x: x[1])
+        score_list.sort(key=lambda x: x[1])
         return score_list
 
         
