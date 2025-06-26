@@ -43,7 +43,21 @@ class BasePlayer(ABC):
             raise DominoNotPlayable("Pas compatible")
         
     def pick_domino(self, shop):
-        raise NotImplementedError("mécanique choix domino dans le shop à stocker dans reserved, voir dans games.py")
+        """Pick a domino from ``shop``.
+
+        The default behaviour is very naive: the player simply selects the
+        domino with the highest number of crowns.  ``shop`` is a list of dominos
+        sorted by id.  The chosen domino is removed from ``shop`` and returned
+        so that the caller can store it in the reserved pile.
+        """
+
+        if not shop:
+            raise ValueError("Shop is empty")
+
+        # Select the domino with the largest amount of crowns
+        best = max(shop, key=lambda d: d[0].crown + d[1].crown)
+        shop.remove(best)
+        return best
 
 
     def play(self, domino):

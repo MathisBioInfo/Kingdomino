@@ -21,7 +21,7 @@ class GamesTwoPlayers:
             self.other_round()
             self.n_round +=1
         self.last_round()
-        self.final_score()
+        return self.final_score()
 
     def determine_turn_order(self):
         random.shuffle(self.players)
@@ -38,11 +38,18 @@ class GamesTwoPlayers:
         order = self.define_running_order()
         for player, domino in order:
             self.reserved.append((player,player.pick_domino(shop)))
-            player.play(domino)
+            try:
+                player.play(domino)
+            except Exception:
+                # Domino cannot be played or no more space.
+                pass
     
     def last_round(self):
         for player, domino in self.define_running_order():
-            player.play(domino)
+            try:
+                player.play(domino)
+            except Exception:
+                pass
 
 
     def define_running_order(self):
