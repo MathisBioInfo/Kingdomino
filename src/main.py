@@ -1,24 +1,18 @@
-from lib.deck import Deck
-from lib.players import GreedyCompactPlayer, GreedyPlayer, DominoNotPlayable, NoMorePlace
+from lib.players import GreedyCompactPlayer, GreedyPlayer
 from lib.dominos import Decor
+from lib.games import GamesTwoPlayers
 
 
 def main():
-    deck = Deck()
-    ply_1 = GreedyPlayer("P1")
+    """Launch a very small two player game."""
 
-    for i in range(1, 14):
-        domino = deck.draw()
-        try:
-            ply_1.play(domino)
-        except NoMorePlace:
-            print(f"Plus de place! tour:{i}")
-            continue
-        except DominoNotPlayable:
-            print(f"Pass your turn! tour:{i} {domino}")
-            continue
-        else:
-            print(ply_1, end="\n\n")
+    player_a = GreedyPlayer("P1")
+    player_b = GreedyPlayer("P2")
+    game = GamesTwoPlayers(player_a, player_b)
+
+    scores = game.start_game()
+    for p, _ in scores:
+        print(p, end="\n\n")
 
     Decor.legend()
 

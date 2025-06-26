@@ -1,16 +1,16 @@
 # KingDomino 
 
-Premier prototype d'un programme jouant à KingDomino disponible, mais limité:
+Prototype d'un programme jouant à KingDomino disponible, encore limité :
 
 ```bash
 python3 src/main.py
 ```
 
-Ce programme simule une partie d'un sous-jeu de KingDomino:
-- 1 seul joueur
-- Pas de système de choix dans la pioche (les dominos arrivent un par un et sans connaissance du prochain)
-- Pas de règles avancées tel que "Empire du Milieu" ou "Harmonie"
-- Algorithme glouton visant à réduire minimiser le nombre de domaine dans le plateau
+Ce programme simule une partie simplifiée de KingDomino :
+- 2 joueurs gérés par l'intelligence artificielle
+- Choix très basique des dominos dans la pioche
+- Pas de règles avancées telles que "Empire du Milieu" ou "Harmonie"
+- Algorithme glouton visant à minimiser le nombre de domaines dans le plateau
 
 ## Setup conda env
 
